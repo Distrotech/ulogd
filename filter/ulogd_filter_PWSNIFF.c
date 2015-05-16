@@ -25,6 +25,7 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <netinet/in.h>
+#define _GNU_SOURCE
 #include <netinet/tcp.h>
 #include <ulogd/ulogd.h>
 
