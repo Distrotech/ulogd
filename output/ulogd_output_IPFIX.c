@@ -44,19 +44,19 @@
 #endif
 
 #ifdef IPPROTO_SCTP
-typedef u_int32_t sctp_assoc_t;
+typedef uint32_t sctp_assoc_t;
 
 /* glibc doesn't yet have this, as defined by
  * draft-ietf-tsvwg-sctpsocket-11.txt */
 struct sctp_sndrcvinfo {
-	u_int16_t	sinfo_stream;
-	u_int16_t	sinfo_ssn;
-	u_int16_t	sinfo_flags;
-	u_int32_t	sinfo_ppid;
-	u_int32_t	sinfo_context;
-	u_int32_t	sinfo_timetolive;
-	u_int32_t	sinfo_tsn;
-	u_int32_t	sinfo_cumtsn;
+	uint16_t	sinfo_stream;
+	uint16_t	sinfo_ssn;
+	uint16_t	sinfo_flags;
+	uint32_t	sinfo_ppid;
+	uint32_t	sinfo_context;
+	uint32_t	sinfo_timetolive;
+	uint32_t	sinfo_tsn;
+	uint32_t	sinfo_cumtsn;
 	sctp_assoc_t	sinfo_assoc_id;
 };
 #endif
@@ -207,7 +207,7 @@ struct ipfix_instance {
 };
 
 #define ULOGD_IPFIX_TEMPL_BASE 1024
-static u_int16_t next_template_id = ULOGD_IPFIX_TEMPL_BASE;
+static uint16_t next_template_id = ULOGD_IPFIX_TEMPL_BASE;
 
 /* Build the IPFIX template from the input keys */
 struct ulogd_ipfix_template *

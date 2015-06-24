@@ -39,7 +39,7 @@
 #define PORT_POP3	110
 #define PORT_FTP	21
 
-static u_int16_t pwsniff_ports[] = {
+static uint16_t pwsniff_ports[] = {
 	PORT_POP3,
 	PORT_FTP,
 	/* feel free to include any other ports here, provided that their
@@ -72,7 +72,7 @@ static int interp_pwsniff(struct ulogd_pluginstance *pi)
 		return ULOGD_IRET_STOP;
 	
 	iph = (struct iphdr *) pi->input.keys[0].u.value.ptr;
-	protoh = (u_int32_t *)iph + iph->ihl;
+	protoh = (uint32_t *)iph + iph->ihl;
 	tcph = protoh;
 	tcplen = ntohs(iph->tot_len) - iph->ihl * 4;
 
