@@ -46,6 +46,7 @@ enum json_conf {
 	JSON_CONF_FILENAME = 0,
 	JSON_CONF_SYNC,
 	JSON_CONF_TIMESTAMP,
+	JSON_CONF_EVENTV1,
 	JSON_CONF_DEVICE,
 	JSON_CONF_BOOLEAN_LABEL,
 	JSON_CONF_MAX
@@ -71,6 +72,12 @@ static struct config_keyset json_kset = {
 			.type = CONFIG_TYPE_INT,
 			.options = CONFIG_OPT_NONE,
 			.u = { .value = 1 },
+		},
+		[JSON_CONF_EVENTV1] = {
+			.key = "eventv1",
+			.type = CONFIG_TYPE_INT,
+			.options = CONFIG_OPT_NONE,
+			.u = { .value = 0 },
 		},
 		[JSON_CONF_DEVICE] = {
 			.key = "device",
@@ -101,6 +108,9 @@ static int json_interp(struct ulogd_pluginstance *upi)
 		return ULOGD_IRET_ERR;
 	}
 
+	if (upi->config_kset->ces[JSON_CONF_EVENTV1].u.value != 0)
+		json_object_set_new(msg, "@version", json_integer(1));
+
 	if (upi->config_kset->ces[JSON_CONF_TIMESTAMP].u.value != 0) {
 		time_t now;
 		char timestr[MAX_LOCAL_TIME_STRING];
@@ -130,7 +140,10 @@ static int json_interp(struct ulogd_pluginstance *upi)
 					t->tm_min, t->tm_sec);
 		}
 
-		json_object_set_new(msg, "timestamp", json_string(timestr));
+		if (upi->config_kset->ces[JSON_CONF_EVENTV1].u.value != 0)
+			json_object_set_new(msg, "@timestamp", json_string(timestr));
+		else
+			json_object_set_new(msg, "timestamp", json_string(timestr));
 	}
 
 	if (upi->config_kset->ces[JSON_CONF_DEVICE].u.string) {
