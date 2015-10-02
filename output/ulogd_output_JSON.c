@@ -36,10 +36,14 @@
 #define ULOGD_JSON_DEFAULT_DEVICE "Netfilter"
 #endif
 
+#define unlikely(x) __builtin_expect((x),0)
+
 struct json_priv {
 	FILE *of;
 	int sec_idx;
 	int usec_idx;
+	long cached_gmtoff;
+	char cached_tz[6];	/* eg +0200 */
 };
 
 enum json_conf {
@@ -94,7 +98,7 @@ static struct config_keyset json_kset = {
 	},
 };
 
-#define MAX_LOCAL_TIME_STRING 32
+#define MAX_LOCAL_TIME_STRING 38
 
 static int json_interp(struct ulogd_pluginstance *upi)
 {
@@ -124,20 +128,29 @@ static int json_interp(struct ulogd_pluginstance *upi)
 		else
 			now = time(NULL);
 		t = localtime_r(&now, &result);
+		if (unlikely(*opi->cached_tz = '\0' || t->tm_gmtoff != opi->cached_gmtoff)) {
+			snprintf(opi->cached_tz, sizeof(opi->cached_tz),
+				 "%c%02d%02d",
+				 t->tm_gmtoff > 0 ? '+' : '-',
+				 abs(t->tm_gmtoff) / 60 / 60,
+				 abs(t->tm_gmtoff) / 60 % 60);
+		}
 
 		if (pp_is_valid(inp, opi->usec_idx)) {
 			snprintf(timestr, MAX_LOCAL_TIME_STRING,
-					"%04d-%02d-%02dT%02d:%02d:%02d.%06u",
+					"%04d-%02d-%02dT%02d:%02d:%02d.%06u%s",
 					t->tm_year + 1900, t->tm_mon + 1,
 					t->tm_mday, t->tm_hour,
 					t->tm_min, t->tm_sec,
-					ikey_get_u32(&inp[opi->usec_idx]));
+					ikey_get_u32(&inp[opi->usec_idx]),
+					opi->cached_tz);
 		} else {
 			snprintf(timestr, MAX_LOCAL_TIME_STRING,
-					"%04d-%02d-%02dT%02d:%02d:%02d",
+					"%04d-%02d-%02dT%02d:%02d:%02d%s",
 					t->tm_year + 1900, t->tm_mon + 1,
 					t->tm_mday, t->tm_hour,
-					t->tm_min, t->tm_sec);
+					t->tm_min, t->tm_sec,
+					opi->cached_tz);
 		}
 
 		if (upi->config_kset->ces[JSON_CONF_EVENTV1].u.value != 0)
@@ -277,6 +290,8 @@ static int json_init(struct ulogd_pluginstance *upi)
 		else if (!strcmp(key->name, "oob.time.usec"))
 			op->usec_idx = i;
 	}
+
+	*op->cached_tz = '\0';
 
 	return 0;
 }
